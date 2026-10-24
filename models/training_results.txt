@@ -1,0 +1,4 @@
+KET QUA HUAN LUYEN - MobileNetV2
+Cac lop: ['Apple', 'Banana', 'Grape', 'Mango', 'Strawberry']
+Valid accuracy: 93.50% | Valid loss: 0.1809
+Test  accuracy: 96.00% | Test  loss: 0.1570

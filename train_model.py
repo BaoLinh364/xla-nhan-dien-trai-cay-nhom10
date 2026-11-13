@@ -28,7 +28,7 @@ MODELS_DIR = os.path.join(BASE_DIR, "models")
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
 EPOCHS_HEAD = 8          # giai doan 1: chi train phan phan loai
-EPOCHS_FINE = 5          # giai doan 2: fine-tune nhe cac lop cuoi
+EPOCHS_FINE = 15         # giai doan 2: fine-tune, co EarlyStopping nen dung som neu het cai thien
 FINE_TUNE_AT = 100       # mo khoa cac lop tu chi so nay tro di
 SEED = 42
 
@@ -162,8 +162,9 @@ def main():
     h1 = model.fit(
         train_ds, validation_data=valid_ds, epochs=EPOCHS_HEAD,
         callbacks=[make_checkpoint(),
+                   # restore_best_weights: fine-tune bat dau tu epoch tot nhat, khong phai epoch cuoi
                    keras.callbacks.EarlyStopping(monitor="val_accuracy", mode="max",
-                                                 patience=4, restore_best_weights=False)],
+                                                 patience=4, restore_best_weights=True)],
     )
     best_so_far = max(h1.history["val_accuracy"])
 
@@ -180,7 +181,9 @@ def main():
     print("\n=== GIAI DOAN 2: Fine-tune ===")
     h2 = model.fit(
         train_ds, validation_data=valid_ds, epochs=EPOCHS_FINE,
-        callbacks=[make_checkpoint(threshold=best_so_far)],
+        callbacks=[make_checkpoint(threshold=best_so_far),
+                   keras.callbacks.EarlyStopping(monitor="val_accuracy", mode="max",
+                                                 patience=4, restore_best_weights=True)],
     )
 
     # Luu ket qua

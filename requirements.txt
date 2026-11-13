@@ -1,0 +1,7 @@
+# Đã chạy thử với Python 3.12 trên Windows
+tensorflow==2.21.0
+keras==3.15.1
+numpy==2.5.4
+pillow==13.0.0
+scikit-learn==1.9.1
+matplotlib==3.11.2

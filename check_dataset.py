@@ -4,6 +4,7 @@ Kiểm tra cấu trúc và chất lượng cơ bản của dataset nhận diện
 """
 
 import os
+import hashlib
 from collections import defaultdict
 from PIL import Image
 
@@ -45,6 +46,8 @@ def check_dataset():
     total_invalid = 0
     split_totals = {}
     all_ok = True
+    # md5 -> danh sách (split, lớp, đường dẫn) để tìm ảnh trùng
+    hashes = defaultdict(list)
 
     for split in SPLITS:
         split_dir = os.path.join(DATASET_DIR, split)
@@ -107,6 +110,10 @@ def check_dataset():
                             img.verify()
                         valid_count += 1
 
+                        with open(file_path, "rb") as f:
+                            digest = hashlib.md5(f.read()).hexdigest()
+                        hashes[digest].append((split, class_name, file_path))
+
                     except Exception:
                         invalid_count += 1
                         print(f"[ANH LOI] {file_path}")
@@ -144,6 +151,21 @@ def check_dataset():
 
     print(f"Tong anh hop le : {total_images}")
     print(f"Tong anh loi    : {total_invalid}")
+
+    # Ảnh trùng hoàn toàn (cùng md5)
+    groups = [g for g in hashes.values() if len(g) > 1]
+    redundant = sum(len(g) - 1 for g in groups)
+    leaks = [g for g in groups if len({s for s, _, _ in g}) > 1]
+    conflicts = [g for g in groups if len({c for _, c, _ in g}) > 1]
+
+    print("\n--- ANH TRUNG LAP (md5) ---")
+    print(f"File du do trung        : {redundant}")
+    print(f"Anh trung giua cac tap  : {len(leaks)} nhom (ro ri train/valid/test)")
+    print(f"Anh trung nhung khac lop: {len(conflicts)} nhom")
+    for g in (conflicts + leaks)[:10]:
+        print("  -", " | ".join(os.path.relpath(p, DATASET_DIR) for _, _, p in g))
+    if leaks or conflicts:
+        all_ok = False
 
     if all_ok:
         print("\n[DAT] Khong phat hien loi cau truc co ban.")

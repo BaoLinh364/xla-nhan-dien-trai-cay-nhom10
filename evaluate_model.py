@@ -1,10 +1,13 @@
 """
 evaluate_model.py
-Danh gia mo hinh MobileNetV2 nhan dien 5 loai trai cay.
+Danh gia mo hinh MobileNetV2 nhan dien 5 loai trai cay,
+mo hinh gate va ca chuoi xu ly giong app (gate + phan loai + nguong).
 
 Dau vao:
     dataset/test/
+    gate_dataset/test/            (neu co)
     models/best_fruit_model.keras
+    models/best_gate_model.keras
     models/class_names.json
 
 Dau ra:
@@ -31,6 +34,8 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay,
 )
 
+from predictor import CONFIDENCE_THRESHOLD, GATE_NONFRUIT_THRESHOLD
+
 # ======================== CAU HINH ========================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +43,9 @@ DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 
 TEST_DIR = os.path.join(DATASET_DIR, "test")
+GATE_TEST_DIR = os.path.join(BASE_DIR, "gate_dataset", "test")
 MODEL_PATH = os.path.join(MODELS_DIR, "best_fruit_model.keras")
+GATE_MODEL_PATH = os.path.join(MODELS_DIR, "best_gate_model.keras")
 CLASS_NAMES_PATH = os.path.join(MODELS_DIR, "class_names.json")
 
 RESULTS_PATH = os.path.join(
@@ -127,11 +134,6 @@ def main():
     # 8. Tính các chỉ số tổng quát
     accuracy = accuracy_score(y_true, y_pred)
 
-    # Không tính loss bằng model.evaluate()
-    # vì mục tiêu hiện tại là đánh giá các chỉ số phân loại.
-    test_loss = None
-    test_accuracy = accuracy
-
     # Macro average: tính chỉ số từng lớp rồi lấy trung bình đều
     precision, recall, f1, _ = (
         precision_recall_fscore_support(
@@ -184,7 +186,48 @@ def main():
     plt.savefig(CONFUSION_MATRIX_PATH, dpi=200)
     plt.close(fig)
 
-    # 12. Tạo nội dung báo cáo
+    # 12. Đánh giá cả chuỗi như trong app: gate -> phân loại -> ngưỡng
+    print("\nDang danh gia gate va ca chuoi xu ly...")
+    gate_model = keras.models.load_model(GATE_MODEL_PATH)
+    gate_p = gate_model.predict(test_ds, verbose=0).reshape(-1)
+
+    rejected = gate_p >= GATE_NONFRUIT_THRESHOLD
+    uncertain = ~rejected & (probabilities.max(axis=1) < CONFIDENCE_THRESHOLD)
+    shown = ~rejected & ~uncertain
+    pipeline = (
+        f"Hien dung ten trai cay:      {int((shown & (y_pred == y_true)).sum())}/{len(y_true)} "
+        f"({(shown & (y_pred == y_true)).mean() * 100:.2f}%)\n"
+        f"Bi gate tu choi nham:        {int(rejected.sum())}\n"
+        f"'Chua chac chan':            {int(uncertain.sum())}\n"
+        f"Hien SAI ten trai cay:       {int((shown & (y_pred != y_true)).sum())}"
+    )
+
+    # 13. Đánh giá gate trên gate_dataset/test (nếu có)
+    gate_report = "Khong co gate_dataset/test - bo qua."
+    if os.path.isdir(GATE_TEST_DIR):
+        gate_ds = keras.utils.image_dataset_from_directory(
+            GATE_TEST_DIR,
+            image_size=IMG_SIZE,
+            batch_size=BATCH_SIZE,
+            label_mode="int",
+            class_names=["Fruit", "NonFruit"],
+            shuffle=False,
+        )
+        g_true = np.concatenate([labels.numpy() for _, labels in gate_ds])
+        g_p = gate_model.predict(gate_ds, verbose=1).reshape(-1)
+        lines = [f"So anh: Fruit {int((g_true == 0).sum())}, NonFruit {int((g_true == 1).sum())}",
+                 "Nguong | Accuracy | NonFruit lot qua | Fruit bi chan"]
+        for thr in (0.3, 0.4, 0.5, 0.6, 0.7):
+            pred = (g_p >= thr).astype(int)
+            mark = "  <- dang dung" if thr == GATE_NONFRUIT_THRESHOLD else ""
+            lines.append(
+                f"{thr:6.1f} | {(pred == g_true).mean() * 100:7.2f}% | "
+                f"{int(((pred == 0) & (g_true == 1)).sum()):16} | "
+                f"{int(((pred == 1) & (g_true == 0)).sum()):13}{mark}"
+            )
+        gate_report = "\n".join(lines)
+
+    # 14. Tạo nội dung báo cáo
     results = f"""
 ============================================================
 BAO CAO DANH GIA MO HINH NHAN DIEN TRAI CAY
@@ -199,9 +242,7 @@ SO MAU TEST: {len(y_true)}
 
 CAC CHI SO TONG QUAT
 ------------------------------------------------------------
-Accuracy (sklearn): {accuracy:.4f} ({accuracy * 100:.2f}%)
-Accuracy:            {accuracy:.4f} ({accuracy * 100:.2f}%)
-Test Loss:           Khong tinh
+Accuracy:           {accuracy:.4f} ({accuracy * 100:.2f}%)
 
 Macro Precision:    {precision:.4f}
 Macro Recall:       {recall:.4f}
@@ -218,6 +259,15 @@ Cot  = nhan du doan
 
 {cm}
 
+CA CHUOI XU LY NHU TRONG APP (tap Test)
+------------------------------------------------------------
+Nguong gate: {GATE_NONFRUIT_THRESHOLD} | Nguong tin cay: {CONFIDENCE_THRESHOLD}
+{pipeline}
+
+MO HINH GATE (gate_dataset/test)
+------------------------------------------------------------
+{gate_report}
+
 Ghi chu:
 - Cac chi so duoc tinh tren tap Test.
 - Macro Precision/Recall/F1 tinh trung binh deu giua cac lop.
@@ -227,7 +277,7 @@ Ghi chu:
 
     print(results)
 
-    # 13. Lưu báo cáo vào file
+    # 15. Lưu báo cáo vào file
     with open(RESULTS_PATH, "w", encoding="utf-8") as file:
         file.write(results)
 

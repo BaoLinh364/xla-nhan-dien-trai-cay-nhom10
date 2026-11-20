@@ -1,6 +1,7 @@
 """
 check_dataset.py
-Kiểm tra cấu trúc và chất lượng cơ bản của dataset nhận diện trái cây.
+Kiểm tra cấu trúc và chất lượng cơ bản của dataset/ (6 lớp: 5 loại quả + unknown):
+ảnh hỏng, ảnh trùng hoàn toàn (MD5) và ảnh rò rỉ giữa train/val/test.
 """
 
 import os
@@ -13,7 +14,7 @@ from PIL import Image
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 
-SPLITS = ["train", "valid", "test"]
+SPLITS = ["train", "val", "test"]
 
 EXPECTED_CLASSES = [
     "Apple",
@@ -21,6 +22,7 @@ EXPECTED_CLASSES = [
     "Grape",
     "Mango",
     "Strawberry",
+    "unknown",
 ]
 
 # Các định dạng ảnh được chấp nhận
@@ -179,4 +181,6 @@ def check_dataset():
 
 
 if __name__ == "__main__":
+    import sys
+    sys.stdout.reconfigure(encoding="utf-8")  # in tiếng Việt cả khi output bị chuyển hướng trên Windows
     check_dataset()

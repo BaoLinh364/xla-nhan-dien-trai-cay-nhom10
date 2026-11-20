@@ -1,0 +1,81 @@
+{
+  "model": "MobileNetV2 (ImageNet) + GAP + Dropout(0.3) + Dense(6, softmax)",
+  "class_names": [
+    "Apple",
+    "Banana",
+    "Grape",
+    "Mango",
+    "Strawberry",
+    "unknown"
+  ],
+  "image_size": [
+    224,
+    224
+  ],
+  "batch_size": 32,
+  "optimizer": "Adam",
+  "loss": "categorical_crossentropy",
+  "learning_rate": {
+    "head": 0.001,
+    "fine_tune": 1e-05
+  },
+  "epochs_max": {
+    "head": 8,
+    "fine_tune": 15
+  },
+  "epochs_run": {
+    "head": 8,
+    "fine_tune": 13
+  },
+  "fine_tune_from_layer": 100,
+  "early_stopping_patience": 4,
+  "augmentation": {
+    "RandomFlip": "horizontal",
+    "RandomRotation": 0.1,
+    "RandomZoom": 0.1,
+    "RandomContrast": 0.1
+  },
+  "dropout": 0.3,
+  "seed": 42,
+  "split_sizes": {
+    "train": {
+      "Apple": 1141,
+      "Banana": 1144,
+      "Grape": 1231,
+      "Mango": 1310,
+      "Strawberry": 839,
+      "unknown": 2817
+    },
+    "val": {
+      "Apple": 143,
+      "Banana": 143,
+      "Grape": 155,
+      "Mango": 166,
+      "Strawberry": 106,
+      "unknown": 352
+    },
+    "test": {
+      "Apple": 144,
+      "Banana": 144,
+      "Grape": 155,
+      "Mango": 166,
+      "Strawberry": 105,
+      "unknown": 353
+    }
+  },
+  "class_weight": {
+    "Apple": 1.239,
+    "Banana": 1.2357,
+    "Grape": 1.1484,
+    "Mango": 1.0791,
+    "Strawberry": 1.6849,
+    "unknown": 0.5018
+  },
+  "trainable_params": 1847302,
+  "total_params": 2265670,
+  "best_epoch": 17,
+  "best_val_accuracy": 0.9417840242385864,
+  "best_val_loss": 0.1800345927476883,
+  "training_time_s": 425.7,
+  "tensorflow": "2.21.0"
+}

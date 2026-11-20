@@ -1,0 +1,180 @@
+{
+  "nguon": {
+    "5_loai_qua": "archive.zip",
+    "unknown": "gate_dataset/*/NonFruit"
+  },
+  "ty_le_chia": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.1
+  },
+  "seed": 42,
+  "nguong_gan_trung_dhash": 4,
+  "unknown_theo_nhom": {
+    "animal_cane": 145,
+    "animal_cavallo": 145,
+    "animal_elefante": 145,
+    "animal_farfalla": 145,
+    "animal_gallina": 145,
+    "animal_gatto": 145,
+    "animal_mucca": 145,
+    "animal_pecora": 145,
+    "animal_ragno": 144,
+    "animal_scoiattolo": 144,
+    "cats": 144,
+    "do_an_do_uong": 556,
+    "dogs": 144,
+    "nature_buildings": 144,
+    "nature_forest": 144,
+    "nature_glacier": 144,
+    "nature_mountain": 144,
+    "nature_sea": 144,
+    "nature_street": 144,
+    "vehicle_bus": 100,
+    "vehicle_car": 100,
+    "vehicle_motorcycle": 100,
+    "vehicle_truck": 100
+  },
+  "theo_lop": {
+    "Apple": {
+      "anh_goc": 2000,
+      "bo_trung_lap_md5": 15,
+      "bo_nhan_mau_thuan": 1,
+      "bo_gan_trung_dhash": 41,
+      "bo_loai_thu_cong": 495,
+      "chuyen_sang_unknown": 14,
+      "truoc_kiem_tra_ro_ri": {
+        "train": 1147,
+        "val": 143,
+        "test": 144
+      },
+      "ro_ri_trung_hoan_toan": 0,
+      "ro_ri_gan_trung": 6,
+      "da_loai_khoi_train": 6,
+      "sau_cung": {
+        "train": 1141,
+        "val": 143,
+        "test": 144
+      }
+    },
+    "Banana": {
+      "anh_goc": 2000,
+      "bo_trung_lap_md5": 31,
+      "bo_nhan_mau_thuan": 0,
+      "bo_gan_trung_dhash": 58,
+      "bo_loai_thu_cong": 428,
+      "chuyen_sang_unknown": 49,
+      "truoc_kiem_tra_ro_ri": {
+        "train": 1147,
+        "val": 143,
+        "test": 144
+      },
+      "ro_ri_trung_hoan_toan": 0,
+      "ro_ri_gan_trung": 3,
+      "da_loai_khoi_train": 3,
+      "sau_cung": {
+        "train": 1144,
+        "val": 143,
+        "test": 144
+      }
+    },
+    "Grape": {
+      "anh_goc": 2000,
+      "bo_trung_lap_md5": 40,
+      "bo_nhan_mau_thuan": 0,
+      "bo_gan_trung_dhash": 62,
+      "bo_loai_thu_cong": 254,
+      "chuyen_sang_unknown": 96,
+      "truoc_kiem_tra_ro_ri": {
+        "train": 1238,
+        "val": 155,
+        "test": 155
+      },
+      "ro_ri_trung_hoan_toan": 0,
+      "ro_ri_gan_trung": 7,
+      "da_loai_khoi_train": 7,
+      "sau_cung": {
+        "train": 1231,
+        "val": 155,
+        "test": 155
+      }
+    },
+    "Mango": {
+      "anh_goc": 2000,
+      "bo_trung_lap_md5": 73,
+      "bo_nhan_mau_thuan": 0,
+      "bo_gan_trung_dhash": 122,
+      "bo_loai_thu_cong": 115,
+      "chuyen_sang_unknown": 32,
+      "truoc_kiem_tra_ro_ri": {
+        "train": 1326,
+        "val": 166,
+        "test": 166
+      },
+      "ro_ri_trung_hoan_toan": 0,
+      "ro_ri_gan_trung": 16,
+      "da_loai_khoi_train": 16,
+      "sau_cung": {
+        "train": 1310,
+        "val": 166,
+        "test": 166
+      }
+    },
+    "Strawberry": {
+      "anh_goc": 2000,
+      "bo_trung_lap_md5": 41,
+      "bo_nhan_mau_thuan": 1,
+      "bo_gan_trung_dhash": 66,
+      "bo_loai_thu_cong": 471,
+      "chuyen_sang_unknown": 365,
+      "truoc_kiem_tra_ro_ri": {
+        "train": 845,
+        "val": 106,
+        "test": 105
+      },
+      "ro_ri_trung_hoan_toan": 0,
+      "ro_ri_gan_trung": 6,
+      "da_loai_khoi_train": 6,
+      "sau_cung": {
+        "train": 839,
+        "val": 106,
+        "test": 105
+      }
+    },
+    "unknown": {
+      "anh_goc": 3000,
+      "bo_trung_lap_md5": 5,
+      "bo_nhan_mau_thuan": 0,
+      "bo_gan_trung_dhash": 26,
+      "bo_loai_thu_cong": 0,
+      "chuyen_sang_unknown": 0,
+      "truoc_kiem_tra_ro_ri": {
+        "train": 2820,
+        "val": 352,
+        "test": 353
+      },
+      "ro_ri_trung_hoan_toan": 0,
+      "ro_ri_gan_trung": 3,
+      "da_loai_khoi_train": 3,
+      "sau_cung": {
+        "train": 2817,
+        "val": 352,
+        "test": 353
+      }
+    }
+  },
+  "tong_sau_cung": {
+    "train": 8482,
+    "val": 1065,
+    "test": 1067
+  },
+  "tong_anh_goc": 13000,
+  "tong_bo_trung_lap_md5": 205,
+  "tong_bo_nhan_mau_thuan": 2,
+  "tong_bo_gan_trung_dhash": 375,
+  "tong_bo_loai_thu_cong": 1763,
+  "tong_chuyen_sang_unknown": 556,
+  "tong_ro_ri_da_loai_khoi_train": 41,
+  "dung_luong_dataset_mb": 154.4,
+  "resize": "cạnh dài <= 256 px, JPEG chất lượng 90"
+}

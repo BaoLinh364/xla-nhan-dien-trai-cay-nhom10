@@ -1,0 +1,29 @@
+{
+  "so_anh_test": 1067,
+  "so_anh_theo_lop": {
+    "Apple": 144,
+    "Banana": 144,
+    "Grape": 155,
+    "Mango": 166,
+    "Strawberry": 105,
+    "unknown": 353
+  },
+  "accuracy": 0.9372071227741331,
+  "macro_avg": {
+    "precision": 0.9308628532119011,
+    "recall": 0.9287253142338475,
+    "f1-score": 0.9290590006915301
+  },
+  "weighted_avg": {
+    "precision": 0.9389368538910291,
+    "recall": 0.9372071227741331,
+    "f1-score": 0.9374511332958319
+  },
+  "unknown_recall_tu_choi_anh_la": 0.9773371104815864,
+  "unknown_precision": 0.971830985915493,
+  "ty_le_anh_la_bi_nhan_thanh_qua": 0.0226628895184136,
+  "ty_le_qua_that_bi_nhan_thanh_unknown": 0.014005602240896359,
+  "so_qua_that_bi_nhan_thanh_unknown": 10,
+  "accuracy_tren_anh_trai_cay": 0.9173669467787114,
+  "ghi_chu_unknown": "Lớp unknown gồm động vật, phong cảnh, phương tiện và bánh, đồ uống, món ăn có trái cây; chưa có ảnh các loại quả khác nên chưa đo được khả năng từ chối quả lạ."
+}

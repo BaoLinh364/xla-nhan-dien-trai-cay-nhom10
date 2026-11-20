@@ -219,8 +219,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-dataset/
 .venv/
 .idea/
 __pycache__/
-gate_dataset/
+
+# Archive tải về (dữ liệu gốc archive.zip...) không đưa lên repo; dataset/ đã xử lý THÌ có
+*.zip

@@ -1,3 +1,9 @@
+"""
+app.py - Giao diện Tkinter nhận diện trái cây bằng một mô hình 6 lớp
+(5 loại quả + unknown). Hiển thị nhãn cuối cùng và xác suất của cả 6 lớp.
+"""
+
+import json
 import os
 import tkinter as tk
 from concurrent.futures import ThreadPoolExecutor
@@ -5,7 +11,9 @@ from tkinter import filedialog, messagebox, ttk
 
 from PIL import Image, ImageOps, ImageTk, UnidentifiedImageError
 
-from predictor import load_gate_model, load_model, predict_image
+from predictor import CLASS_NAMES_PATH, display_name, load_model, predict_image, to_percentages
+
+APP_TITLE = "NHẬN DIỆN HÌNH ẢNH TRÁI CÂY"
 
 # =========================
 # CẤU HÌNH GIAO DIỆN
@@ -28,12 +36,16 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("Ứng dụng nhận diện ảnh")
-        self.geometry("960x600")
-        self.minsize(860, 560)
+        self.title(APP_TITLE)
+        self.geometry("960x660")
+        self.minsize(860, 640)
 
         self.image_path = None
         self.preview_photo = None
+
+        # Thứ tự lớp đọc từ file do train_model.py ghi ra, dùng chung với mô hình
+        with open(CLASS_NAMES_PATH, encoding="utf-8") as f:
+            self.class_names = json.load(f)
 
         # Một luồng nền duy nhất: nạp mô hình rồi nhận diện lần lượt,
         # để giao diện không bị đơ.
@@ -57,7 +69,6 @@ class App(tk.Tk):
 
     @staticmethod
     def preload_models():
-        load_gate_model()
         load_model()
 
     def on_models_loaded(self, future):
@@ -132,6 +143,14 @@ class App(tk.Tk):
             foreground="#555555"
         )
 
+        # Thanh xác suất: màu đậm trên nền sáng để nhìn rõ (mặc định của "clam" gần như cùng màu nền)
+        style.configure(
+            "Prob.Horizontal.TProgressbar",
+            background="#1a5fb4",
+            troughcolor="#ffffff",
+            thickness=12
+        )
+
         style.configure(
             "Warning.TLabel",
             font=("Segoe UI", 9),
@@ -153,7 +172,7 @@ class App(tk.Tk):
 
         ttk.Label(
             header,
-            text="NHẬN DIỆN ẢNH",
+            text=APP_TITLE,
             style="Title.TLabel"
         ).pack(side="left")
 
@@ -318,10 +337,10 @@ class App(tk.Tk):
             pady=(2, 14)
         )
 
-        # Độ tin cậy
+        # Xác suất của CẢ 6 lớp, đúng thứ tự class_names.json (lấy thẳng từ softmax)
         ttk.Label(
             result,
-            text="Độ tin cậy của mô hình:",
+            text="Xác suất từng lớp (softmax):",
             style="Head.TLabel"
         ).grid(
             row=2,
@@ -329,62 +348,30 @@ class App(tk.Tk):
             sticky="w"
         )
 
-        self.conf_bar = ttk.Progressbar(
-            result,
-            maximum=100,
-            length=300
-        )
+        probs_frame = ttk.Frame(result)
+        probs_frame.grid(row=3, column=0, sticky="ew", pady=(4, 0))
+        probs_frame.columnconfigure(1, weight=1)
 
-        self.conf_bar.grid(
-            row=3,
-            column=0,
-            sticky="ew",
-            pady=(4, 2)
-        )
-
-        self.conf_var = tk.StringVar(value="—")
-
-        ttk.Label(
-            result,
-            textvariable=self.conf_var,
-            style="Conf.TLabel"
-        ).grid(
-            row=4,
-            column=0,
-            sticky="w"
-        )
-
-        # Các dự đoán khác
-        ttk.Label(
-            result,
-            text="Các dự đoán khác:",
-            style="Head.TLabel"
-        ).grid(
-            row=5,
-            column=0,
-            sticky="w",
-            pady=(14, 2)
-        )
-
-        self.topk_var = tk.StringVar(value="")
-
-        ttk.Label(
-            result,
-            textvariable=self.topk_var,
-            justify="left"
-        ).grid(
-            row=6,
-            column=0,
-            sticky="w"
-        )
-
-        # Cảnh báo giới hạn mô hình
-        self.warning_var = tk.StringVar(
-            value=(
-                "Lưu ý: mô hình chỉ phân loại 5 loại trái cây. "
-                "Ảnh ngoài phạm vi vẫn có thể bị nhận nhầm."
+        self.prob_rows = {}
+        for i, name in enumerate(self.class_names):
+            ttk.Label(probs_frame, text=display_name(name)).grid(
+                row=i, column=0, sticky="w", padx=(0, 8)
             )
+            bar = ttk.Progressbar(probs_frame, maximum=100, length=140, style="Prob.Horizontal.TProgressbar")
+            bar.grid(row=i, column=1, sticky="ew", pady=1)
+            var = tk.StringVar(value="—")
+            ttk.Label(probs_frame, textvariable=var, width=8, anchor="e").grid(
+                row=i, column=2, sticky="e", padx=(8, 0)
+            )
+            self.prob_rows[name] = (bar, var)
+
+        self.total_var = tk.StringVar(value="")
+        ttk.Label(probs_frame, textvariable=self.total_var, style="Status.TLabel").grid(
+            row=len(self.class_names), column=0, columnspan=3, sticky="e", pady=(2, 0)
         )
+
+        # Thông báo khi ảnh không thuộc 5 loại quả
+        self.warning_var = tk.StringVar(value="")  # chỉ hiện khi kết quả là unknown
 
         ttk.Label(
             result,
@@ -393,10 +380,10 @@ class App(tk.Tk):
             wraplength=360,
             justify="left"
         ).grid(
-            row=7,
+            row=4,
             column=0,
             sticky="w",
-            pady=(16, 0)
+            pady=(12, 0)
         )
 
         # Thanh trạng thái
@@ -427,14 +414,11 @@ class App(tk.Tk):
     def clear_result(self):
 
         self.result_var.set("—")
-        self.conf_var.set("—")
-        self.conf_bar["value"] = 0
-        self.topk_var.set("")
-
-        self.warning_var.set(
-            "Lưu ý: mô hình chỉ phân loại 5 loại trái cây. "
-            "Ảnh ngoài phạm vi vẫn có thể bị nhận nhầm."
-        )
+        for bar, var in self.prob_rows.values():
+            bar["value"] = 0
+            var.set("—")
+        self.total_var.set("")
+        self.warning_var.set("")
 
     # =========================
     # HIỂN THỊ ẢNH
@@ -556,7 +540,7 @@ class App(tk.Tk):
         self.set_buttons_enabled(True)
 
         try:
-            status, label, confidence, topk = future.result()
+            label, probs = future.result()
 
         except Exception as error:
 
@@ -568,91 +552,34 @@ class App(tk.Tk):
             self.set_status("Nhận diện thất bại.")
             return
 
-        self.show_result(
-            label,
-            confidence,
-            topk
-        )
+        self.show_result(label, probs)
 
-        if status == "rejected":
-
-            # Đây là xác suất NonFruit, không phải độ tin cậy trái cây
-            self.conf_var.set(
-                f"{confidence * 100:.1f}% (xác suất không phải trái cây)"
-            )
-
+        if label == "unknown":
             self.warning_var.set(
-                "Mô hình lọc xác định đây không phải ảnh trái cây. "
-                "Vui lòng chọn ảnh có táo, chuối, nho, xoài hoặc dâu tây."
+                "Ảnh không thuộc 5 loại quả được hỗ trợ "
+                "(táo, chuối, nho, xoài, dâu tây)."
             )
-
-            self.set_status(
-                "Đã từ chối ảnh không được xác định là trái cây."
-            )
-
-            messagebox.showwarning(
-                "Ảnh không phải trái cây",
-                "Ảnh đầu vào không phải trái cây. "
-                "Vui lòng chọn ảnh trái cây!"
-            )
-
-        elif status == "uncertain":
-
-            self.set_status(
-                "Dự đoán có độ tin cậy thấp. "
-                "Hãy thử ảnh trái cây rõ nét hơn."
-            )
-
+            self.set_status("Kết quả: unknown – không phải một trong 5 loại quả.")
         else:
-
-            self.warning_var.set(
-                "Ảnh đã vượt qua bộ lọc. "
-                "Kết quả nhận diện vẫn có thể sai."
-            )
-
-            self.set_status(
-                "Đã hoàn tất nhận diện trái cây."
-            )
+            self.warning_var.set("")
+            self.set_status("Đã hoàn tất nhận diện.")
 
     # =========================
     # HIỂN THỊ KẾT QUẢ
     # =========================
 
-    def show_result(
-        self,
-        label,
-        confidence,
-        topk=None
-    ):
+    def show_result(self, label, probs):
+        """label: lớp có xác suất cao nhất; probs: [(lớp, xác suất softmax)] cho cả 6 lớp."""
+        percents = to_percentages([p for _, p in probs])  # tổng hiển thị đúng 100%
+        by_name = dict(zip([n for n, _ in probs], percents))
 
-        confidence = max(
-            0.0,
-            min(1.0, float(confidence))
-        )
+        top = by_name[label]
+        self.result_var.set(f"{display_name(label)}  ({top:.2f}%)")
 
-        self.result_var.set(str(label))
-
-        self.conf_bar["value"] = confidence * 100
-
-        self.conf_var.set(
-            f"{confidence * 100:.1f}%"
-        )
-
-        if topk:
-
-            lines = []
-
-            for name, probability in topk:
-
-                lines.append(
-                    f"• {name}: {probability * 100:.1f}%"
-                )
-
-            self.topk_var.set("\n".join(lines))
-
-        else:
-
-            self.topk_var.set("")
+        for cls, (bar, var) in self.prob_rows.items():
+            bar["value"] = by_name[cls]
+            var.set(f"{by_name[cls]:.2f}%")
+        self.total_var.set(f"Tổng: {sum(percents):.2f}%")
 
     # =========================
     # LÀM MỚI GIAO DIỆN
